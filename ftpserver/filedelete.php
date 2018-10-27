@@ -21,11 +21,11 @@ $filedelete = $_GET['filedelete'];
     $delfile = $username."/".urldecode($filedelete);
     unlink ($delfile);
     $dispname = iconv("gb2312", "UTF-8", $delfile);
-    echo "<br> 删除文件： ".$dispname."<br>";
+    //echo "<br> 删除文件： ".$dispname."<br>";
         
     doFileList ($username);
 
-    echo "<br><br> <a href=index.php> 返回主页 </a>";
+   // echo "<br><br> <a href=index.php> 返回主页 </a>";
 
 ?>
 

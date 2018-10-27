@@ -26,10 +26,17 @@
     }
 </script>
 
+<style> 
+body{ text-align:center} 
+.div{ margin:0 auto; width:800px; height:400px; } 
+</style> 
+
 </head>  
 
 <body>
 
+<div class="div">
+<br></br>
 <form name="LoginForm" method="post" action="ftplogin.php" >  
 
 <p>  
@@ -48,8 +55,10 @@
 <br />
 
 </p>  
+<br></br>
 
 </form>  
+</div>
 
 
 </body>
