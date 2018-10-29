@@ -9,20 +9,20 @@
 <script src="md5.js"></script>
 
 <script type="text/javascript">
-    function loginClick() {
+    function checkValue() {
         var name = document.LoginForm.username.value;
         var pwd = document.LoginForm.password.value;
 	    if(name==null||name.length==0){
 		    alert("用户名不能为空！");
-		    return;
+		    return false;
 	    }
 	     if(pwd==null||pwd.length==0){
-		    alert("密码不能为空！");
-		    return;
+		    alert("密码不能为空");
+		    return false;
 	     }
 	     var hash = md5(pwd);
 	     document.LoginForm.password.value = hash;
-	     document.LoginForm.submit();
+	     return true;
     }
 </script>
 
@@ -37,7 +37,7 @@ body{ text-align:center}
 
 <div class="div">
 <br></br>
-<form name="LoginForm" method="post" action="ftplogin.php" >  
+<form name="LoginForm" method="post" action="ftplogin.php" onsubmit="checkValue()" >  
 
 <p>  
 <label for="username" class="label">用户:</label>  
@@ -50,8 +50,8 @@ body{ text-align:center}
 <p/>  
 
 <p>  
-<input type="submit" name="login" onclick ="loginClick()" value="  登  录  " class="left" />  &nbsp &nbsp
-<input type="submit" name="regist" onclick ="loginClick()" value="  注  册  " class="right" />  
+<input type="submit" name="login" value="  登  录  " class="left" />  &nbsp &nbsp
+<input type="submit" name="regist" value="  注  册  " class="right" />  
 <br />
 
 </p>  

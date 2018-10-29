@@ -36,6 +36,9 @@ else
 <?php 
 
 if (isset($_POST['regist'])) {
+    if ($username == NULL || $password == NULL){
+        exit('用户和密码不能为空！');
+    }
     if (findUser ($username)) {
         exit('用户已经存在， 无法注册！');  
     }
