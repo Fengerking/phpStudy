@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+ 
+</head>
+<body>
+    <video width="320" height="240" controls autoplay>
+        <!--source src="video.mp4" type="video/mp4"-->
+    </video> <br />
+    <input type="button" onclick="playfile()" value="play" />
+    <script>
+
+    var video = document.querySelector('video');
+
+    var assetURL = 'http://localhost/study/video123.mp4';
+    // Need to be specific for Blink regarding codecs
+    // ./mp4info frag_bunny.mp4 | grep Codec
+    var mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+    var mediaSource = new MediaSource();
+    if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
+
+        //console.log(mediaSource.readyState); // closed
+        mediaSource.addEventListener('sourceopen', sourceOpen);
+
+        video.src = URL.createObjectURL(mediaSource);
+    } else {
+        console.error('Unsupported MIME type or codec: ', mimeCodec);
+    }
+
+    function sourceOpen() {
+        console.log(this.readyState); // open
+        var mediaSource = this;
+        var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+        fetchAB(assetURL, function (buf) {
+            console.log(mediaSource.readyState);
+            sourceBuffer.addEventListener('updateend', function () {
+                console.log(mediaSource.readyState);
+
+               // mediaSource.endOfStream();
+                //video.play();
+                //console.log(mediaSource.readyState); // ended
+            });
+            console.log(buf.byteLength);
+
+            sourceBuffer.appendBuffer(buf);
+            console.log(mediaSource.readyState);
+        });
+    };
+
+    function fetchAB(url, cb) {
+        console.log(url);
+        var xhr = new XMLHttpRequest;
+        xhr.open('get', url);
+        xhr.responseType = 'arraybuffer';
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState < 4) 
+                return;
+         
+            cb(xhr.response);
+        };
+        xhr.send();
+    };
+
+    function playfile() {
+        console.log(mediaSource.readyState);
+        mediaSource.endOfStream();
+        video.play();
+    }
+    </script>
+
+</body>
+</html>
