@@ -40,8 +40,8 @@
                 console.log(mediaSource.readyState);
 
                // mediaSource.endOfStream();
-                //video.play();
-                //console.log(mediaSource.readyState); // ended
+               // video.play();
+                console.log(mediaSource.readyState); // ended
             });
             console.log(buf.byteLength);
 
@@ -54,6 +54,7 @@
         console.log(url);
         var xhr = new XMLHttpRequest;
         xhr.open('get', url);
+        xhr.setRequestHeader("Range", "bytes=0-1024000");
         xhr.responseType = 'arraybuffer';
         xhr.onreadystatechange = function () {
             if (xhr.readyState < 4) 
