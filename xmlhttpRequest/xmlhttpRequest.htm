@@ -2,38 +2,36 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>XMLHttpRequest上传文件进度实现</title>
+    <title>XMLHttpReques download file</title>
     <script type="text/javascript">
         var xhr;
-        //上传文件方法
-        function downLoadFile() {
-            var url = "http://localhost/phpStudy/xmlhttpRequest/jiangnanStyleAVC_H_AAC1080P.mp4"; // 接收上传文件的后台地址
-            xhr = new XMLHttpRequest();  // XMLHttpRequest 对象
-            xhr.open("GET", url, true); //post方式，url为服务器请求地址，true 该参数规定请求是否异步处理。
+        var urlFile = "http://localhost/phpStudy/xmlhttpRequest/origin.mp4";
+        var nStartPos;
+        var nEndPos;
+        xhr = new XMLHttpRequest();
 
+        var mediaSource = new MediaSource();;
+        var sourceBuffer;
+        var video;
+        var totalDuration = 10000;
+        var videoWidth = 640;
+        var videoHeight = 480;
 
-            xhr.onerror = uploadFailed; //请求失败
+        function downLoadFile(nStart, nEnd) {
+            nEndPos = nEnd;
+
+            xhr.open("GET", urlFile, true);
+            xhr.onerror = downFailed;
             xhr.onreadystatechange = dataCallback;
-            xhr.upload.onprogress = progressFunction;//【上传进度调用方法实现】
-            xhr.setRequestHeader("Range", "bytes=10240-10480");
-
+            //xhr.setRequestHeader("Range", "bytes=" + nStart + "-" + nEnd);
             xhr.responseType = "arraybuffer";
 
-            xhr.send(""); //开始上传，发送form数据
-        }
-        //上传进度实现方法，上传过程中会频繁调用该方法
-        function progressFunction(evt) {
-            
-            if (evt.lengthComputable) {
-                alert(evt.loaded + "  " + evt.total);
-            }
-
-               // progress.innerHTML = Math.round(100* e.loaded/ e.total) + \'%\';
+            xhr.send("");
 
         }
 
         function dataCallback(evt) {
-            alert(xhr.readyState);
+           //alert(xhr.readyState);
 
             if (xhr.readyState < 4) {
                 return;
@@ -43,6 +41,8 @@
                 return;
             };
             alert(xhr.response);
+            //alert(xhr.responseText);
+
 /*
             var arrayBuffer = oReq.response; // 注意:不是oReq.responseText
             if (arrayBuffer) {
@@ -52,27 +52,104 @@
                 }
             }
 */
+
+            //downLoadFile(nEndPos, nEndPos + 1024);
+            play();
         }
 
-        //上传成功响应
-        function uploadComplete(evt) {
-            //服务断接收完文件返回的结果
+        function downFailed(evt) {
             //alert(evt.target.responseText);
-            alert("上传成功！");
-        }
-        //上传失败
-        function uploadFailed(evt) {
-            //alert(evt.target.responseText);
-            alert("上传失败！");
+            alert("download failed！");
         }
         //取消上传
-        function cancleUploadFile() {
+        function cancleDownFile() {
             xhr.abort();
         }
+
+        function play() {
+            //if (!mediaSource)
+            {
+              //  mediaSource = new MediaSource();
+                mediaSource.addEventListener('sourceopen', onMediaSourceOpen());
+                mediaSource.addEventListener('sourceended', onMediaSourceEnded());
+                mediaSource.addEventListener('sourceclose', onMediaSourceClosed());
+                mediaSource.addEventListener('error', onUpdateError());
+
+                //video = createNewVideo();
+                video = document.getElementsByTagName("video");
+                video.src = window.URL.createObjectURL(mediaSource);
+                video.play();
+            }
+
+            if (!sourceBuffer) {
+                alert("The the source buffer is null!");
+                return;
+            }
+
+            alert("111");
+            if (this.sourceBuffer.updating){
+                return;
+            }
+
+
+            try {
+                alert("222");
+
+                sourceBuffer.appendBuffer(xhr.response);
+            }
+            catch (err) {
+                alert("333");
+
+            }
+
+            alert("OK");
+        }
+
+        function createNewVideo() {
+            var newVideo = document.createElement("video");
+            newVideo.id = "player";
+            newVideo.width = videoWidth;
+            newVideo.height = videoHeight;
+            return newVideo;
+        }
+
+        function onMediaSourceOpen() {
+            //alert("onMediaSourceOpen");
+            var typeName = 'video/webm; codecs="vorbis,vp8"';
+            var issurpport = MediaSource.isTypeSupported(typeName); //是否支持
+
+            if (issurpport)
+                alert("The video is support!");
+            else
+                alert("The video is not support!");
+            alert("create source buffer 000");
+            this.mediaSource.duration = 10000;
+            alert("create source buffer 111");
+            sourceBuffer = mediaSource.addSourceBuffer(typeName);
+            alert("create source buffer");
+        }
+
+        function onMediaSourceEnded() {
+            console.log("source ended!");
+        }
+
+        function onMediaSourceClosed() {
+            console.log("source closed!");
+        }
+
+        function onUpdateError() {
+            console.log("onUpdateError!");
+        }
+
+ 
     </script>
 </head>
 <body>
     <br /><br />
-    <input type="button" onclick="downLoadFile()" value="上传" />
+    <input type="button" onclick="play()" value="download" />
+
+    <video width="320" height="240" controls>
+      <!--- <source src="shangbuqi.mp4" type="video/mp4"> -->
+    </video>
 </body>
 </html>
