@@ -58,7 +58,7 @@ function doFileList($subfolder)
         echo "<tr height =\"36px\">";
         echo "<td style=\"text-align:left \">";
         echo $gbname;
-        echo "&nbsp &nbsp <a href=".$subfolder."/".$gbname."> 下载 </a>\r\n";
+        echo "&nbsp &nbsp <a href=\"".$subfolder."/".$gbname."\"> 下载 </a>\r\n";
         echo "</td>\r\n";
         
         echo "<td>";
