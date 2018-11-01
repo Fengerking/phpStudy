@@ -6,25 +6,23 @@
     <title></title>
     <script>
 
-
-        var assetURL = 'http://localhost/phpStudy/xmlhttprequest/15346515019356_origin.mp4';
+    var assetURL = 'http://localhost/phpStudy/xmlhttprequest/test.mp4';
     // Need to be specific for Blink regarding codecs
     // ./mp4info frag_bunny.mp4 | grep Codec
-    var mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
-    var reader;
+    var mimeCodec = 'video/mp4; codecs="avc1.42c01e, mp4a.40.2"';
     var mediaSource;
+    var mediaData = null;
     var posStart = 0;
     var posEnd = 1024;
     var nIndex = 0;
+
 
     function openFile() {
         var video = document.getElementById("video");
         mediaSource = new MediaSource();
         if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
-
             //console.log(mediaSource.readyState); // closed
             mediaSource.addEventListener('sourceopen', sourceOpen);
-
             video.src = URL.createObjectURL(mediaSource);
         } else {
             console.error('Unsupported MIME type or codec: ', mimeCodec);
@@ -32,9 +30,9 @@
     }
 
     function sourceOpen() {
-        console.log(this.readyState); // open
+        console.log("Source Open " + this.readyState); // open
         var mediaSource = this;
-        mediaSource.duration = 10;
+     //   mediaSource.duration = 10;
         var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
         sourceBuffer.addEventListener('update', function () {
             console.log("update  " + mediaSource.readyState);
@@ -47,60 +45,95 @@
         });
         sourceBuffer.addEventListener('updateend', function () {
             console.log("updateend  " + mediaSource.readyState);
-
-         //   posStart = posEnd;
-            //   posEnd += 1205;
-            if (nIndex >= 250) {
+            if (nIndex >= 200) {
                 mediaSource.endOfStream();
-                video.play();
+               // video.play();
             } else {
-                fetchAB(assetURL, null);
+                fillNextSegment ();
             }
-            console.log(mediaSource.readyState); // ended
         });
-        fetchAB(assetURL, function (buf) {
-        // getFromFile(function (buf) {
-            console.log(mediaSource.readyState);
 
-            console.log(buf.byteLength);
-            console.log(sourceBuffer.updating);
-
-
-            var buff = new Int32Array(buf, 0, 4);
-            console.log(buff.toString());
-            console.log(buff[0]);
-
-            mediaSource.sourceBuffers[0].appendBuffer(buf);
-            console.log(mediaSource.readyState);
-        });
+        fillFirstSegment();
 
     };
 
-    function fetchAB(url, cb) {
+    function fillFirstSegment() {
+        if (mediaData == null)
+            downLoadFile(assetURL);
+       // console.log("FileSize = " + mediaData.byteLength);
+
+    }
+
+    function fillNextSegment() {
+        var i = 0;
+        var nPos = posEnd;
+        var nSize = 0;
+        var boxID = "";
+
+        var buff = new Uint8Array(mediaData);
+        nSize = buff[nPos] * 0XFFFFFF + buff[nPos + 1] * 65536 + buff[nPos + 2] * 256 + buff[nPos + 3];
+        for (i = nPos + 4; i < nPos + 8; i++)
+            boxID += String.fromCharCode(buff[i])
+        console.log("Size: %d   Type: %s", nSize, boxID);
+
+        nPos += nSize;
+        nSize = buff[nPos] * 0XFFFFFF + buff[nPos + 1] * 65536 + buff[nPos + 2] * 256 + buff[nPos + 3];
+        boxID = "";
+        for (i = nPos + 4; i < nPos + 8; i++)
+            boxID += String.fromCharCode(buff[i])
+        console.log("Size: %d   Type: %s", nSize, boxID);
+
+        nIndex++;
+        posStart = posEnd;
+        posEnd = nPos + nSize;
+
+        var data = mediaData.slice(posStart, posEnd);
+        var buffData = new Uint8Array(data, 0, 16);
+        console.log(buffData.toString());
+
+        mediaSource.sourceBuffers[0].appendBuffer(data);
+        console.log("Add buff size %d  Pos %d  %d", data.byteLength, posStart, posEnd);
+
+    }
+
+    function downLoadFile (url) {
        // console.log(url);
         var xhr = new XMLHttpRequest;
         xhr.open('get', url);
-        xhr.setRequestHeader("Range", "bytes="+posStart + "-" + posEnd);
+        //xhr.setRequestHeader("Range", "bytes="+posStart + "-" + posEnd);
         xhr.responseType = 'arraybuffer';
         xhr.onreadystatechange = function () {
             if (xhr.readyState < 4)
                 return;
 
-            var buff = new Uint8Array(xhr.response, 0, 16);
-           // console.log(posStart + " " + xhr.response.byteLength + " " + buff.toString());
- 
-            var nSize = buff[0] * 0XFFFFFF + buff[1] * 65535 + buff[2] * 256 + buff[3];
-            console.log(posStart + " " + nSize + "  " + nIndex);
+            mediaData = xhr.response.slice();
+            console.log(mediaData.byteLength);
 
-            posStart += nSize;
-            posEnd = posStart + 40920;
+            var i = 0;
+            var nPos = 0;
+            var nSize = 0;
+            var boxID = "";
+
+            var buff = new Uint8Array(xhr.response);
+            nSize = buff[nPos] * 0XFFFFFF + buff[nPos + 1] * 65536 + buff[nPos + 2] * 256 + buff[nPos + 3];
+            for (i = nPos + 4; i < nPos + 8; i++)
+                boxID += String.fromCharCode(buff[i])
+            console.log("Size: %d   Type: %s", nSize, boxID);
+
+            nPos += nSize;
+            nSize = buff[nPos] * 0XFFFFFF + buff[nPos + 1] * 65536 + buff[nPos + 2] * 256 + buff[nPos + 3];
+            boxID = "";
+            for (i = nPos + 4; i < nPos + 8; i++)
+                boxID += String.fromCharCode(buff[i])
+            console.log("Size: %d   Type: %s", nSize, boxID);
+
             nIndex++;
+            posStart = 0;
+            posEnd = nPos + nSize;
 
-            //cb(xhr.response);
-           // var data = new Int8Array(xhr.response, 0, nSize - 1);
-            // console.log(data.toString());
-            var data = xhr.response.slice(0, nSize - 1);
+            var data = xhr.response.slice(posStart, posEnd);
             mediaSource.sourceBuffers[0].appendBuffer(data);
+            console.log("Add buff size %d  Pos %d  %d", data.byteLength, posStart, posEnd);
 
         };
         xhr.send();
@@ -139,7 +172,7 @@
 
 </head>
 <body>
-    <video id ="video" width="320" height="240" controls autoplay >
+    <video id ="video" width="320" height="240" controls muted autoplay >
         <!--source src="video.mp4" type="video/mp4"-->
     </video> <br />
     <input type="button" onclick="openFile()" value="play" /> <br />
@@ -150,5 +183,6 @@
         openFile();
     </script>
 
+    chrome://policy
 </body>
 </html>
